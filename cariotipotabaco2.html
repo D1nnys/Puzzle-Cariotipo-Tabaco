@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle del Cariotipo del Tabaco</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .puzzle-area {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chromosomes-pool {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border: 3px dashed #bdc3c7;
+            transition: all 0.3s ease;
+            min-height: 300px;
+        }
+
+        .chromosomes-pool:hover {
+            border-color: #3498db;
+            background: #ecf0f1;
+        }
+
+        .pool-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .karyotype-grid {
+            flex: 2;
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            border: 3px solid #34495e;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .grid-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .chromosome-pairs {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .chromosome-pair {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .chromosome-pair:hover {
+            background: #e9ecef;
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .chromosome-pair.complete {
+            background: #d4edda;
+            border-color: #28a745;
+            animation: pulse 0.6s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pair-number {
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .chromosome-slots {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chromosome-slot {
+            width: 40px;
+            height: 20px;
+            border: 2px dashed #ced4da;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .chromosome-slot.drop-zone {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .chromosome {
+            width: 35px;
+            height: 15px;
+            border-radius: 8px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .chromosome:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .chromosome:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .chromosome.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+
+        /* Colores específicos para los cromosomas del tabaco */
+        .chromosome[data-pair="1"] { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .chromosome[data-pair="2"] { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .chromosome[data-pair="3"] { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .chromosome[data-pair="4"] { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .chromosome[data-pair="5"] { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .chromosome[data-pair="6"] { background: linear-gradient(135deg, #1abc9c, #16a085); }
+        .chromosome[data-pair="7"] { background: linear-gradient(135deg, #e67e22, #d35400); }
+        .chromosome[data-pair="8"] { background: linear-gradient(135deg, #34495e, #2c3e50); }
+        .chromosome[data-pair="9"] { background: linear-gradient(135deg, #f1c40f, #f39c12); }
+        .chromosome[data-pair="10"] { background: linear-gradient(135deg, #e91e63, #ad1457); }
+        .chromosome[data-pair="11"] { background: linear-gradient(135deg, #795548, #5d4037); }
+        .chromosome[data-pair="12"] { background: linear-gradient(135deg, #607d8b, #455a64); }
+        .chromosome[data-pair="13"] { background: linear-gradient(135deg, #ff5722, #e64a19); }
+        .chromosome[data-pair="14"] { background: linear-gradient(135deg, #4caf50, #388e3c); }
+        .chromosome[data-pair="15"] { background: linear-gradient(135deg, #2196f3, #1976d2); }
+        .chromosome[data-pair="16"] { background: linear-gradient(135deg, #ff9800, #f57c00); }
+        .chromosome[data-pair="17"] { background: linear-gradient(135deg, #673ab7, #512da8); }
+        .chromosome[data-pair="18"] { background: linear-gradient(135deg, #009688, #00695c); }
+        .chromosome[data-pair="19"] { background: linear-gradient(135deg, #ff6b6b, #ee5a52); }
+        .chromosome[data-pair="20"] { background: linear-gradient(135deg, #4ecdc4, #45b7b8); }
+        .chromosome[data-pair="21"] { background: linear-gradient(135deg, #a8e6cf, #88d8a3); }
+        .chromosome[data-pair="22"] { background: linear-gradient(135deg, #ffd93d, #ffcd3c); }
+        .chromosome[data-pair="23"] { background: linear-gradient(135deg, #ff6b9d, #ff5e94); }
+        .chromosome[data-pair="24"] { background: linear-gradient(135deg, #c44569, #b33771); }
+
+        .sex-chromosomes {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+        }
+
+        .sex-title {
+            font-size: 1em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+        }
+
+        .completion-message {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            border-radius: 15px;
+            margin-top: 20px;
+            transform: scale(0);
+            transition: all 0.5s ease;
+        }
+
+        .completion-message.show {
+            transform: scale(1);
+            animation: celebration 0.8s ease-out;
+        }
+
+        @keyframes celebration {
+            0% { transform: scale(0) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .puzzle-area {
+                flex-direction: column;
+            }
+            
+            .chromosome-pairs {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .game-info {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .chromosome-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Estilos para la página de información de cromosomas */
+        .chromosome-info-page {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .chromosome-info-page.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .info-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+        }
+
+        .info-header h1 {
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .info-subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .chromosome-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .chromosome-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid #e9ecef;
+        }
+
+        .chromosome-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chromosome-visual {
+            width: 50px;
+            height: 30px;
+            border-radius: 8px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .card-header h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.3em;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .card-content h4 {
+            color: #34495e;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-content p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .card-content ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .card-content li {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            color: #2c3e50;
+            font-size: 0.9em;
+        }
+
+        .card-content li::before {
+            content: "🧬";
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧬 Puzzle del Cariotipo del Tabaco</h1>
+        <p class="subtitle">Nicotiana tabacum - 2n=48 cromosomas (24 pares)</p>
+        
+        <div class="game-info">
+            <div class="info-item">
+                <div class="info-label">Pares Completos</div>
+                <div class="info-value" id="completedPairs">0/24</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Cromosomas Colocados</div>
+                <div class="info-value" id="placedChromosomes">0/48</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Progreso</div>
+                <div class="info-value" id="progress">0%</div>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="puzzle-area">
+            <div class="chromosomes-pool">
+                <div class="pool-title">🧬 Cromosomas Disponibles</div>
+                <div id="chromosomePool"></div>
+            </div>
+
+            <div class="karyotype-grid">
+                <div class="grid-title">🔬 Cariotipo del Tabaco</div>
+                <div class="chromosome-pairs" id="chromosomePairs"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="shuffleChromosomes()">🔄 Mezclar</button>
+            <button class="btn btn-warning" onclick="resetPuzzle()">↩️ Reiniciar</button>
+            <button class="btn btn-info" onclick="showChromosomeInfo()">✅ Terminado</button>
+        </div>
+
+        <div class="completion-message" id="completionMessage">
+            <h2>🎉 ¡Felicitaciones! 🎉</h2>
+            <p>Has completado exitosamente el cariotipo del tabaco con sus 24 pares de cromosomas.</p>
+            <button class="btn btn-success" onclick="showChromosomeInfo()" style="margin-top: 15px;">
+                📚 Ver Información de los Cromosomas
+            </button>
+        </div>
+
+        <div class="chromosome-info-page" id="chromosomeInfoPage">
+            <div class="info-header">
+                <h1>🧬 Función de los Cromosomas del Tabaco</h1>
+                <p class="info-subtitle">Nicotiana tabacum - Información genética por par cromosómico</p>
+                <button class="btn btn-primary" onclick="backToPuzzle()">← Volver al Puzzle</button>
+            </div>
+
+            <div class="chromosome-grid">
+                <div class="chromosome-card" data-pair="1">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">1</div>
+                        <h3>Par 1</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌱 Desarrollo y Crecimiento</h4>
+                        <p>Contiene genes esenciales para el desarrollo temprano de la planta, incluyendo la germinación de semillas y el crecimiento inicial del tallo.</p>
+                        <ul>
+                            <li>Genes de elongación celular</li>
+                            <li>Factores de transcripción del desarrollo</li>
+                            <li>Proteínas estructurales básicas</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="2">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #3498db, #2980b9);">2</div>
+                        <h3>Par 2</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🍃 Fotosíntesis</h4>
+                        <p>Genes fundamentales para la fotosíntesis, incluyendo componentes del aparato fotosintético y la síntesis de clorofila.</p>
+                        <ul>
+                            <li>Subunidades de rubisco</li>
+                            <li>Proteínas del fotosistema I y II</li>
+                            <li>Enzimas de síntesis de clorofila</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="3">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #2ecc71, #27ae60);">3</div>
+                        <h3>Par 3</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌿 Metabolismo de la Nicotina</h4>
+                        <p>Contiene genes clave para la síntesis y regulación de alcaloides, especialmente la nicotina característica del tabaco.</p>
+                        <ul>
+                            <li>Nicotina sintasa</li>
+                            <li>Enzimas de la ruta del ácido nicotínico</li>
+                            <li>Reguladores de alcaloides</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="4">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #f39c12, #e67e22);">4</div>
+                        <h3>Par 4</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌾 Estructura de la Hoja</h4>
+                        <p>Genes responsables del desarrollo y morfología de las hojas, incluyendo la formación de tricomas y estomas.</p>
+                        <ul>
+                            <li>Proteínas de la cutícula</li>
+                            <li>Factores de desarrollo foliar</li>
+                            <li>Genes de tricomas glandulares</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="5">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">5</div>
+                        <h3>Par 5</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌸 Reproducción</h4>
+                        <p>Genes esenciales para la reproducción sexual, desarrollo floral y formación de semillas.</p>
+                        <ul>
+                            <li>Genes de identidad floral</li>
+                            <li>Factores de fertilidad</li>
+                            <li>Desarrollo del polen</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="6">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #1abc9c, #16a085);">6</div>
+                        <h3>Par 6</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🧪 Metabolismo Secundario</h4>
+                        <p>Genes para la síntesis de compuestos secundarios importantes, incluyendo terpenos y fenoles.</p>
+                        <ul>
+                            <li>Terpeno sintasas</li>
+                            <li>Enzimas fenólicas</li>
+                            <li>Flavonoides</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="7">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #e67e22, #d35400);">7</div>
+                        <h3>Par 7</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌡️ Respuesta al Estrés</h4>
+                        <p>Genes que permiten a la planta responder a condiciones de estrés abiótico como sequía, temperatura y salinidad.</p>
+                        <ul>
+                            <li>Proteínas de choque térmico</li>
+                            <li>Osmolitos</li>
+                            <li>Antioxidantes</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="8">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #34495e, #2c3e50);">8</div>
+                        <h3>Par 8</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🦠 Resistencia a Patógenos</h4>
+                        <p>Genes de resistencia a enfermedades bacterianas, fúngicas y virales que afectan al tabaco.</p>
+                        <ul>
+                            <li>Genes de resistencia R</li>
+                            <li>Proteínas PR (Pathogenesis-related)</li>
+                            <li>Sistemas de defensa</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="9">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #f1c40f, #f39c12);">9</div>
+                        <h3>Par 9</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>💧 Transporte de Agua</h4>
+                        <p>Genes relacionados con el transporte de agua y nutrientes a través del sistema vascular de la planta.</p>
+                        <ul>
+                            <li>Acuaporinas</li>
+                            <li>Proteínas del xilema</li>
+                            <li>Reguladores osmóticos</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="10">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #e91e63, #ad1457);">10</div>
+                        <h3>Par 10</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌿 Biosíntesis de Celulosa</h4>
+                        <p>Genes esenciales para la síntesis de celulosa y otros componentes de la pared celular.</p>
+                        <ul>
+                            <li>Celulosa sintasa</li>
+                            <li>Enzimas de lignificación</li>
+                            <li>Proteínas estructurales</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="11">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #795548, #5d4037);">11</div>
+                        <h3>Par 11</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🔋 Metabolismo Energético</h4>
+                        <p>Genes del metabolismo energético celular, incluyendo respiración y producción de ATP.</p>
+                        <ul>
+                            <li>Enzimas mitocondriales</li>
+                            <li>Cadena respiratoria</li>
+                            <li>ATP sintasa</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="12">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #607d8b, #455a64);">12</div>
+                        <h3>Par 12</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🧬 Reparación del ADN</h4>
+                        <p>Genes cruciales para el mantenimiento de la integridad genómica y reparación de daños en el ADN.</p>
+                        <ul>
+                            <li>DNA polimerasas</li>
+                            <li>Sistemas de reparación</li>
+                            <li>Checkpoints celulares</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="13">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #ff5722, #e64a19);">13</div>
+                        <h3>Par 13</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌱 Hormonas Vegetales</h4>
+                        <p>Genes para la síntesis y señalización de hormonas vegetales como auxinas, giberelinas y citoquininas.</p>
+                        <ul>
+                            <li>Síntesis de auxinas</li>
+                            <li>Receptores hormonales</li>
+                            <li>Cascadas de señalización</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="14">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #4caf50, #388e3c);">14</div>
+                        <h3>Par 14</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌿 Metabolismo del Nitrógeno</h4>
+                        <p>Genes relacionados con la absorción, transporte y metabolismo del nitrógeno en la planta.</p>
+                        <ul>
+                            <li>Nitrato reductasa</li>
+                            <li>Transportadores de nitrógeno</li>
+                            <li>Síntesis de aminoácidos</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="15">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #2196f3, #1976d2);">15</div>
+                        <h3>Par 15</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌞 Ritmos Circadianos</h4>
+                        <p>Genes del reloj biológico que regulan los ritmos circadianos y respuestas a la luz.</p>
+                        <ul>
+                            <li>Genes del reloj central</li>
+                            <li>Fotorreceptores</li>
+                            <li>Reguladores circadianos</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="16">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #ff9800, #f57c00);">16</div>
+                        <h3>Par 16</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🧪 Detoxificación</h4>
+                        <p>Genes para la detoxificación de compuestos tóxicos y xenobióticos del ambiente.</p>
+                        <ul>
+                            <li>Citocromo P450</li>
+                            <li>Glutatión S-transferasas</li>
+                            <li>Enzimas de fase II</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="17">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #673ab7, #512da8);">17</div>
+                        <h3>Par 17</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌾 Desarrollo de Raíces</h4>
+                        <p>Genes específicos para el desarrollo y función del sistema radicular.</p>
+                        <ul>
+                            <li>Factores de elongación radicular</li>
+                            <li>Proteínas de pelos radiculares</li>
+                            <li>Simbiosis micorrízica</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="18">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #009688, #00695c);">18</div>
+                        <h3>Par 18</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌡️ Termorregulación</h4>
+                        <p>Genes que permiten a la planta regular su temperatura y adaptarse a cambios térmicos.</p>
+                        <ul>
+                            <li>Proteínas de membrana</li>
+                            <li>Chaperonas</li>
+                            <li>Metabolitos termoprotectores</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="19">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #ff6b6b, #ee5a52);">19</div>
+                        <h3>Par 19</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🧬 Síntesis de Proteínas</h4>
+                        <p>Genes esenciales para la síntesis de proteínas y el procesamiento de ARN.</p>
+                        <ul>
+                            <li>Ribosomas</li>
+                            <li>Factores de elongación</li>
+                            <li>ARN polimerasas</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="20">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #4ecdc4, #45b7b8);">20</div>
+                        <h3>Par 20</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌸 Pigmentación</h4>
+                        <p>Genes responsables de la síntesis de pigmentos que dan color a flores y hojas.</p>
+                        <ul>
+                            <li>Antocianinas</li>
+                            <li>Carotenoides</li>
+                            <li>Flavonoides</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="21">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #a8e6cf, #88d8a3);">21</div>
+                        <h3>Par 21</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🔄 Ciclo Celular</h4>
+                        <p>Genes que regulan la división celular y el crecimiento tisular.</p>
+                        <ul>
+                            <li>Ciclinas</li>
+                            <li>Quinasas dependientes de ciclina</li>
+                            <li>Reguladores del ciclo</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="22">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #ffd93d, #ffcd3c);">22</div>
+                        <h3>Par 22</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌊 Balance Hídrico</h4>
+                        <p>Genes que regulan el balance hídrico y la respuesta a estrés hídrico.</p>
+                        <ul>
+                            <li>Reguladores estomatales</li>
+                            <li>Proteínas de deshidratación</li>
+                            <li>Osmolitos compatibles</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="23">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #ff6b9d, #ff5e94);">23</div>
+                        <h3>Par 23</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🌿 Senescencia</h4>
+                        <p>Genes que controlan el envejecimiento y muerte programada de tejidos vegetales.</p>
+                        <ul>
+                            <li>Factores de senescencia</li>
+                            <li>Degradación de clorofila</li>
+                            <li>Reciclaje de nutrientes</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chromosome-card" data-pair="24">
+                    <div class="card-header">
+                        <div class="chromosome-visual" style="background: linear-gradient(135deg, #c44569, #b33771);">24</div>
+                        <h3>Par 24</h3>
+                    </div>
+                    <div class="card-content">
+                        <h4>🧬 Regulación Epigenética</h4>
+                        <p>Genes que controlan la modificación epigenética y la expresión génica.</p>
+                        <ul>
+                            <li>Metilasas del ADN</li>
+                            <li>Histonas modificadoras</li>
+                            <li>Reguladores cromatínicos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TobaccoKaryotypePuzzle {
+            constructor() {
+                this.chromosomes = [];
+                this.pairs = [];
+                this.completedPairs = 0;
+                this.placedChromosomes = 0;
+                this.draggedElement = null;
+                this.init();
+            }
+
+            init() {
+                this.createChromosomes();
+                this.createPairs();
+                this.renderChromosomePool();
+                this.updateStats();
+            }
+
+            createChromosomes() {
+                // Crear 48 cromosomas (24 pares)
+                for (let pair = 1; pair <= 24; pair++) {
+                    for (let chromo = 1; chromo <= 2; chromo++) {
+                        this.chromosomes.push({
+                            id: `${pair}-${chromo}`,
+                            pair: pair,
+                            number: chromo,
+                            placed: false
+                        });
+                    }
+                }
+            }
+
+            createPairs() {
+                const pairsContainer = document.getElementById('chromosomePairs');
+                pairsContainer.innerHTML = '';
+
+                for (let i = 1; i <= 24; i++) {
+                    const pairDiv = document.createElement('div');
+                    pairDiv.className = 'chromosome-pair';
+                    pairDiv.innerHTML = `
+                        <div class="pair-number">Par ${i}</div>
+                        <div class="chromosome-slots">
+                            <div class="chromosome-slot" data-pair="${i}" data-position="1"></div>
+                            <div class="chromosome-slot" data-pair="${i}" data-position="2"></div>
+                        </div>
+                    `;
+                    pairsContainer.appendChild(pairDiv);
+                }
+
+                this.addDropListeners();
+            }
+
+            renderChromosomePool() {
+                const pool = document.getElementById('chromosomePool');
+                pool.innerHTML = '';
+
+                this.chromosomes.forEach(chromo => {
+                    if (!chromo.placed) {
+                        const chromoDiv = document.createElement('div');
+                        chromoDiv.className = 'chromosome';
+                        chromoDiv.setAttribute('draggable', 'true');
+                        chromoDiv.setAttribute('data-pair', chromo.pair);
+                        chromoDiv.setAttribute('data-number', chromo.number);
+                        chromoDiv.setAttribute('data-id', chromo.id);
+                        chromoDiv.textContent = chromo.pair;
+                        chromoDiv.style.margin = '5px';
+                        chromoDiv.style.display = 'inline-block';
+                        
+                        this.addDragListeners(chromoDiv);
+                        pool.appendChild(chromoDiv);
+                    }
+                });
+            }
+
+            shuffleChromosomes() {
+                // Mezclar solo los cromosomas no colocados
+                const unplaced = this.chromosomes.filter(c => !c.placed);
+                const shuffled = [...unplaced].sort(() => Math.random() - 0.5);
+                
+                // Reorganizar el pool manteniendo el estado
+                this.chromosomes = [
+                    ...this.chromosomes.filter(c => c.placed),
+                    ...shuffled
+                ];
+                
+                this.renderChromosomePool();
+            }
+
+            addDragListeners(element) {
+                element.addEventListener('dragstart', (e) => {
+                    this.draggedElement = element;
+                    element.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', element.getAttribute('data-id'));
+                });
+
+                element.addEventListener('dragend', (e) => {
+                    element.classList.remove('dragging');
+                });
+            }
+
+            addDropListeners() {
+                const slots = document.querySelectorAll('.chromosome-slot');
+                
+                slots.forEach(slot => {
+                    slot.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        slot.classList.add('drop-zone');
+                    });
+
+                    slot.addEventListener('dragleave', (e) => {
+                        slot.classList.remove('drop-zone');
+                    });
+
+                    slot.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        slot.classList.remove('drop-zone');
+                        
+                        if (this.draggedElement) {
+                            const draggedId = this.draggedElement.getAttribute('data-id');
+                            const draggedPair = this.draggedElement.getAttribute('data-pair');
+                            const slotPair = slot.getAttribute('data-pair');
+                            
+                            if (draggedPair === slotPair && !slot.hasChildNodes()) {
+                                // Colocar cromosoma
+                                const chromo = this.draggedElement.cloneNode(true);
+                                chromo.setAttribute('draggable', 'false');
+                                chromo.style.margin = '0';
+                                chromo.style.cursor = 'default';
+                                slot.appendChild(chromo);
+                                
+                                // Remover del pool
+                                this.draggedElement.remove();
+                                
+                                // Actualizar estado
+                                const chromoData = this.chromosomes.find(c => c.id === draggedId);
+                                chromoData.placed = true;
+                                this.placedChromosomes++;
+                                
+                                this.checkPairCompletion(parseInt(slotPair));
+                                this.updateStats();
+                                
+                                // Añadir click para remover
+                                chromo.addEventListener('click', () => {
+                                    this.removeChromosome(chromo, slot, chromoData);
+                                });
+                            }
+                        }
+                    });
+                });
+            }
+
+            removeChromosome(chromoElement, slot, chromoData) {
+                slot.removeChild(chromoElement);
+                chromoData.placed = false;
+                this.placedChromosomes--;
+                
+                const pairNum = parseInt(chromoData.pair);
+                const pairDiv = slot.closest('.chromosome-pair');
+                pairDiv.classList.remove('complete');
+                
+                // Recalcular pares completos
+                this.completedPairs = 0;
+                for (let i = 1; i <= 24; i++) {
+                    this.checkPairCompletion(i);
+                }
+                
+                this.renderChromosomePool();
+                this.updateStats();
+            }
+
+            checkPairCompletion(pairNumber) {
+                const slots = document.querySelectorAll(`[data-pair="${pairNumber}"]`);
+                const filledSlots = Array.from(slots).filter(slot => 
+                    slot.classList.contains('chromosome-slot') && slot.hasChildNodes()
+                );
+                
+                if (filledSlots.length === 2) {
+                    const pairDiv = slots[0].closest('.chromosome-pair');
+                    if (!pairDiv.classList.contains('complete')) {
+                        pairDiv.classList.add('complete');
+                        this.completedPairs++;
+                        
+                        if (this.completedPairs === 24) {
+                            setTimeout(() => this.showCompletion(), 500);
+                        }
+                    }
+                }
+            }
+
+            updateStats() {
+                document.getElementById('completedPairs').textContent = `${this.completedPairs}/24`;
+                document.getElementById('placedChromosomes').textContent = `${this.placedChromosomes}/48`;
+                const progress = Math.round((this.placedChromosomes / 48) * 100);
+                document.getElementById('progress').textContent = `${progress}%`;
+                document.getElementById('progressFill').style.width = `${progress}%`;
+            }
+
+            showCompletion() {
+                document.getElementById('completionMessage').classList.add('show');
+            }
+
+            reset() {
+                this.chromosomes.forEach(chromo => chromo.placed = false);
+                this.completedPairs = 0;
+                this.placedChromosomes = 0;
+                
+                document.querySelectorAll('.chromosome-pair').forEach(pair => {
+                    pair.classList.remove('complete');
+                });
+                
+                document.querySelectorAll('.chromosome-slot').forEach(slot => {
+                    slot.innerHTML = '';
+                });
+                
+                document.getElementById('completionMessage').classList.remove('show');
+                document.getElementById('chromosomeInfoPage').classList.remove('show');
+                
+                this.renderChromosomePool();
+                this.updateStats();
+            }
+        }
+
+        // Inicializar el puzzle
+        const puzzle = new TobaccoKaryotypePuzzle();
+
+        // Funciones globales para los botones
+        function shuffleChromosomes() {
+            puzzle.shuffleChromosomes();
+        }
+
+        function resetPuzzle() {
+            puzzle.reset();
+        }
+
+        function showChromosomeInfo() {
+            document.getElementById('chromosomeInfoPage').classList.add('show');
+        }
+
+        function backToPuzzle() {
+            document.getElementById('chromosomeInfoPage').classList.remove('show');
+        }
+    </script>
+</body>
+</html>
